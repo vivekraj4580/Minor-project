@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sanitation Worker Safety System — Login</title>
+  <meta name="description" content="Digital safety coordination system for sanitation workers. SOS alerts, real-time tracking and emergency response."/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    /* ── Login Page Specific ── */
+    body { display:flex; flex-direction:column; min-height:100vh; overflow:hidden; }
+
+    /* Animated background */
+    .bg-grid {
+      position:fixed; inset:0; z-index:0;
+      background-image:
+        linear-gradient(rgba(245,158,11,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(245,158,11,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      animation: gridMove 20s linear infinite;
+    }
+    @keyframes gridMove { to { background-position: 40px 40px; } }
+
+    .bg-glow-1 { position:fixed; width:600px; height:600px; border-radius:50%; background:radial-gradient(circle, rgba(245,158,11,0.08) 0%, transparent 70%); top:-200px; left:-200px; z-index:0; animation:float1 8s ease-in-out infinite; }
+    .bg-glow-2 { position:fixed; width:500px; height:500px; border-radius:50%; background:radial-gradient(circle, rgba(239,68,68,0.07) 0%, transparent 70%); bottom:-150px; right:-150px; z-index:0; animation:float2 10s ease-in-out infinite; }
+    @keyframes float1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(30px,20px)} }
+    @keyframes float2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-20px,-30px)} }
+
+    /* ── Main layout ── */
+    .login-wrapper {
+      position:relative; z-index:1;
+      display:flex; min-height:100vh;
+    }
+
+    /* Left: branding */
+    .login-left {
+      flex:1; display:flex; flex-direction:column; justify-content:center; align-items:flex-start;
+      padding:60px; gap:32px;
+      background: linear-gradient(135deg, rgba(245,158,11,0.06) 0%, transparent 60%);
+      border-right:1px solid var(--border);
+    }
+    .brand-logo {
+      width:72px; height:72px;
+      background:linear-gradient(135deg,#f59e0b,#ef4444);
+      border-radius:20px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:36px;
+      box-shadow:0 8px 32px rgba(245,158,11,0.3);
+    }
+    .brand-title { font-size:36px; font-weight:900; line-height:1.2; }
+    .brand-title span { color:#f59e0b; }
+    .brand-sub { font-size:15px; color:var(--text-secondary); max-width:360px; line-height:1.7; }
+
+    .feature-list { display:flex; flex-direction:column; gap:14px; }
+    .feature-item {
+      display:flex; align-items:center; gap:14px;
+      padding:14px 18px;
+      background:rgba(255,255,255,0.03);
+      border:1px solid var(--border);
+      border-radius:var(--radius-md);
+      transition:var(--transition);
+    }
+    .feature-item:hover { background:rgba(255,255,255,0.06); border-color:var(--border-hover); }
+    .feature-icon { font-size:22px; flex-shrink:0; }
+    .feature-text .ft { font-size:14px; font-weight:600; }
+    .feature-text .fs { font-size:12px; color:var(--text-muted); margin-top:2px; }
+
+    .stats-bar { display:flex; gap:32px; padding:20px 24px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:var(--radius-md); }
+    .stat-bar-item { text-align:center; }
+    .stat-bar-item .n { font-size:24px; font-weight:800; color:var(--color-primary); }
+    .stat-bar-item .l { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-top:2px; }
+
+    /* Right: login form */
+    .login-right {
+      width:480px; display:flex; flex-direction:column; justify-content:center; align-items:center;
+      padding:60px 48px;
+    }
+    .login-card { width:100%; max-width:380px; }
+    .login-card h2 { font-size:26px; font-weight:800; margin-bottom:6px; }
+    .login-card .subtitle { font-size:14px; color:var(--text-secondary); margin-bottom:28px; }
+
+    /* Role toggle */
+    .role-toggle {
+      display:flex; background:rgba(255,255,255,0.04); border:1px solid var(--border);
+      border-radius:var(--radius-md); padding:4px; margin-bottom:24px; gap:4px;
+    }
+    .role-btn {
+      flex:1; padding:10px; text-align:center; border-radius:var(--radius-sm);
+      font-size:13px; font-weight:600; cursor:pointer; border:none; font-family:'Inter',sans-serif;
+      background:transparent; color:var(--text-secondary); transition:var(--transition);
+    }
+    .role-btn.active { background:var(--color-primary); color:#000; box-shadow:0 2px 8px rgba(245,158,11,0.3); }
+
+    .login-form { display:flex; flex-direction:column; gap:16px; }
+    .login-btn { width:100%; padding:14px; font-size:15px; border-radius:var(--radius-md); margin-top:4px; }
+
+    .demo-creds {
+      margin-top:20px; padding:14px 16px;
+      background:rgba(59,130,246,0.07); border:1px solid rgba(59,130,246,0.2);
+      border-radius:var(--radius-md);
+    }
+    .demo-creds p { font-size:12px; color:var(--text-muted); margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+    .demo-row { display:flex; justify-content:space-between; font-size:12px; color:var(--text-secondary); margin:3px 0; }
+    .demo-row code { color:#93c5fd; font-family:monospace; }
+
+    .quick-fill {
+      display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;
+    }
+    .quick-fill button {
+      flex:1; padding:7px 10px; font-size:11px; border-radius:var(--radius-sm);
+      border:1px solid var(--border); background:rgba(255,255,255,0.04);
+      color:var(--text-secondary); cursor:pointer; font-family:'Inter',sans-serif;
+      transition:var(--transition); white-space:nowrap;
+    }
+    .quick-fill button:hover { background:rgba(255,255,255,0.08); color:var(--text-primary); }
+
+    .login-footer { margin-top:28px; text-align:center; font-size:12px; color:var(--text-muted); }
+
+    /* Responsive */
+    @media(max-width:900px) {
+      .login-left { display:none; }
+      .login-right { width:100%; padding:40px 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow-1"></div>
+  <div class="bg-glow-2"></div>
+
+  <div class="login-wrapper">
+    <!-- Left Branding Panel -->
+    <div class="login-left">
+      <div>
+        <div class="brand-logo">🦺</div>
+        <h1 class="brand-title" style="margin-top:20px">Sanitation<br><span>Safety</span> System</h1>
+        <p class="brand-sub" style="margin-top:12px">A digital safety coordination platform protecting Delhi's sanitation workers with real-time SOS alerts and emergency response.</p>
+      </div>
+
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-icon">🆘</div>
+          <div class="feature-text">
+            <div class="ft">One-Press SOS Button</div>
+            <div class="fs">Instant emergency alert with GPS location capture</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📍</div>
+          <div class="feature-text">
+            <div class="ft">Live Location Tracking</div>
+            <div class="fs">Precise GPS coordinates sent to admin on alert</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🖥️</div>
+          <div class="feature-text">
+            <div class="ft">Real-Time Admin Dashboard</div>
+            <div class="fs">Supervisor sees all worker statuses instantly</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📊</div>
+          <div class="feature-text">
+            <div class="ft">Alert History & Logs</div>
+            <div class="fs">Full log of every alert, resolved or active</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-bar-item"><div class="n">5</div><div class="l">Workers</div></div>
+        <div class="stat-bar-item"><div class="n">5</div><div class="l">Delhi Zones</div></div>
+        <div class="stat-bar-item"><div class="n">24/7</div><div class="l">Monitoring</div></div>
+        <div class="stat-bar-item"><div class="n">0s</div><div class="l">Alert Delay</div></div>
+      </div>
+    </div>
+
+    <!-- Right Login Panel -->
+    <div class="login-right">
+      <div class="login-card">
+        <h2>Welcome Back</h2>
+        <p class="subtitle">Sign in to access your safety dashboard</p>
+
+        <!-- Role Toggle -->
+        <div class="role-toggle">
+          <button class="role-btn active" id="role-worker" onclick="setRole('worker')">👷 Worker</button>
+          <button class="role-btn"        id="role-admin"  onclick="setRole('admin')">🛡️ Admin</button>
+        </div>
+
+        <!-- Login Form -->
+        <form class="login-form" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label class="form-label" for="email">Email Address</label>
+            <input class="form-input" type="email" id="email" placeholder="Enter your email" required autocomplete="email"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <input class="form-input" type="password" id="password" placeholder="Enter your password" required autocomplete="current-password"/>
+          </div>
+          <div id="login-error" class="alert alert-error hidden"></div>
+          <button class="btn btn-primary login-btn" type="submit" id="login-btn">Sign In →</button>
+        </form>
+
+        <!-- Demo Credentials Box -->
+        <div class="demo-creds">
+          <p>🧪 Demo Credentials</p>
+          <div class="demo-row"><span>Admin</span><code>admin@safety.com / Admin@123</code></div>
+          <div class="demo-row"><span>Worker 1</span><code>worker1@safety.com / Worker@123</code></div>
+          <div class="demo-row"><span>Worker 2</span><code>worker2@safety.com / Worker@123</code></div>
+          <div class="quick-fill">
+            <button onclick="fillAdmin()">Fill Admin</button>
+            <button onclick="fillWorker(1)">Fill Worker 1</button>
+            <button onclick="fillWorker(2)">Fill Worker 2</button>
+            <button onclick="fillWorker(3)">Fill Worker 3</button>
+          </div>
+        </div>
+
+        <p class="login-footer">Delhi Sanitation Department &nbsp;|&nbsp; Prototype v1.0</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="notification" class="notification hidden"></div>
+
+  <script src="js/auth.js"></script>
+  <script>
+    let selectedRole = 'worker';
+
+    function setRole(role) {
+      selectedRole = role;
+      document.getElementById('role-worker').classList.toggle('active', role === 'worker');
+      document.getElementById('role-admin').classList.toggle('active', role === 'admin');
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const email    = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const errEl    = document.getElementById('login-error');
+      const btn      = document.getElementById('login-btn');
+
+      btn.disabled     = true;
+      btn.textContent  = 'Signing in…';
+      errEl.classList.add('hidden');
+
+      setTimeout(() => {
+        const result = login(email, password, selectedRole);
+        if (result.success) {
+          btn.textContent = '✅ Redirecting…';
+          window.location.href = result.role === 'admin' ? 'admin-panel.html' : 'worker-dashboard.html';
+        } else {
+          errEl.textContent = '❌ ' + result.error;
+          errEl.classList.remove('hidden');
+          btn.disabled    = false;
+          btn.textContent = 'Sign In →';
+        }
+      }, 600);
+    }
+
+    function fillAdmin()     { setRole('admin');  document.getElementById('email').value='admin@safety.com';   document.getElementById('password').value='Admin@123'; }
+    function fillWorker(n)   { setRole('worker'); document.getElementById('email').value=`worker${n}@safety.com`; document.getElementById('password').value='Worker@123'; }
+
+    // Redirect if already logged in
+    const s = getSession();
+    if (s) window.location.href = s.role === 'admin' ? 'admin-panel.html' : 'worker-dashboard.html';
+  </script>
+</body>
+</html>
