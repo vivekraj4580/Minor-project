@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Worker Dashboard — Sanitation Safety System</title>
+  <meta name="description" content="Worker dashboard with SOS emergency button, GPS location tracking and alert history."/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/dashboard.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+</head>
+<body class="dashboard-body">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+      <div class="logo-icon">🦺</div>
+      <span>Safety System</span>
+    </a>
+    <div class="navbar-right">
+      <span class="navbar-user">Welcome, <span id="nav-worker-name">Worker</span></span>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">⬡ Logout</button>
+    </div>
+  </nav>
+
+  <div class="dashboard-container">
+
+    <!-- Worker Info Card -->
+    <div class="worker-info-card glass-card">
+      <div style="display:flex;align-items:center;gap:16px;flex:1">
+        <div class="worker-avatar" id="worker-avatar-letter">R</div>
+        <div class="worker-details">
+          <h2 id="worker-name">Loading…</h2>
+          <div class="worker-meta">
+            <div class="worker-meta-item"><span class="icon">🪪</span><span id="worker-id-display">—</span></div>
+            <div class="worker-meta-item"><span class="icon">📍</span><span id="worker-zone">—</span></div>
+            <div class="worker-meta-item"><span class="icon">📞</span><span id="worker-phone">—</span></div>
+            <div class="worker-meta-item"><span class="icon">🕐</span>Last active: <span id="last-active">—</span></div>
+          </div>
+        </div>
+      </div>
+      <div id="worker-status" class="status-badge safe"><span class="dot safe"></span> Safe</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card glass-card">
+        <div class="stat-number" id="stat-total">0</div>
+        <div class="stat-label">Total Alerts</div>
+      </div>
+      <div class="stat-card glass-card safe-stat">
+        <div class="stat-number" id="stat-resolved">0</div>
+        <div class="stat-label">Resolved</div>
+      </div>
+      <div class="stat-card glass-card">
+        <div class="stat-number" style="color:var(--color-primary)">Delhi</div>
+        <div class="stat-label">Zone</div>
+      </div>
+    </div>
+
+    <!-- Status Section -->
+    <div class="status-section glass-card safe-mode" id="status-section">
+      <div>
+        <div class="status-label">Current Status</div>
+        <div class="status-value">You are currently on duty and safe.</div>
+      </div>
+      <span id="worker-status" class="status-badge safe"><span class="dot safe"></span> Safe</span>
+    </div>
+
+    <!-- Emergency Alert Banner -->
+    <div id="alert-banner" class="alert-active-banner hidden">
+      <div class="alert-icon">🚨</div>
+      <div>
+        <h4>EMERGENCY ALERT ACTIVE</h4>
+        <p>Your SOS has been sent. Help is on the way. Stay calm and stay in place.</p>
+      </div>
+    </div>
+
+    <!-- SOS Button Section -->
+    <div class="sos-section glass-card">
+      <h3>Emergency SOS</h3>
+
+      <div class="sos-btn-wrapper">
+        <div class="sos-ripple"></div>
+        <div class="sos-ripple"></div>
+        <div class="sos-ripple"></div>
+        <button id="sos-btn" onclick="triggerSOS()">
+          <span class="sos-icon">🆘</span>
+          <span class="sos-text">S O S</span>
+          <span class="sos-sub">Press in emergency</span>
+        </button>
+      </div>
+
+      <p class="sos-hint">
+        Press the SOS button in case of emergency. Your GPS location will be captured automatically and sent to your supervisor immediately.
+      </p>
+    </div>
+
+    <!-- Location Section (hidden until SOS pressed) -->
+    <div id="location-section" class="location-card glass-card hidden">
+      <h4>📍 Captured Location</h4>
+      <div id="location-display">Fetching coordinates…</div>
+      <div id="map"></div>
+      <a id="map-link" href="#" target="_blank" class="map-link">🗺️ Open in Google Maps ↗</a>
+    </div>
+
+    <!-- My Alert History -->
+    <div class="my-alerts-card glass-card">
+      <h4>🕐 My Alert History</h4>
+      <div id="my-alerts-list">
+        <p class="no-data">No alerts triggered yet. Stay safe! 🟢</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="notification" class="notification hidden"></div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/worker.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Wait for Leaflet to load
+      if (typeof L !== 'undefined') initWorkerDashboard();
+      else window.addEventListener('load', initWorkerDashboard);
+    });
+  </script>
+</body>
+</html>
