@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel — Sanitation Safety System</title>
+  <meta name="description" content="Admin dashboard to monitor all sanitation workers, view emergency alerts and coordinate rescue response."/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/admin.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+</head>
+<body class="admin-body">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+      <div class="logo-icon">🦺</div>
+      <span>Safety System</span>
+    </a>
+    <div class="navbar-right">
+      <div class="refresh-indicator">
+        <div class="refresh-spin"></div>
+        <span>Auto-refresh every 3s &nbsp;|&nbsp; <span id="last-refresh">—</span></span>
+      </div>
+      <span class="navbar-user">Admin: <span id="nav-admin-name">—</span></span>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">⬡ Logout</button>
+    </div>
+  </nav>
+
+  <div class="admin-container">
+
+    <!-- Header -->
+    <div class="admin-header">
+      <div>
+        <h1>🖥️ Admin Dashboard</h1>
+        <p>Delhi Sanitation Department — All Zones Monitoring</p>
+      </div>
+      <div class="live-badge">
+        <div class="live-dot"></div>
+        Live Monitoring
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card-admin glass-card total-card">
+        <div class="stat-icon-box total">👷</div>
+        <div class="stat-info">
+          <div class="num" id="stat-total">0</div>
+          <div class="lbl">Total Workers</div>
+        </div>
+      </div>
+      <div class="stat-card-admin glass-card safe-card">
+        <div class="stat-icon-box safe">🟢</div>
+        <div class="stat-info">
+          <div class="num" id="stat-safe">0</div>
+          <div class="lbl">Safe & Active</div>
+        </div>
+      </div>
+      <div class="stat-card-admin glass-card emergency-card">
+        <div class="stat-icon-box emergency">🚨</div>
+        <div class="stat-info">
+          <div class="num" id="stat-emergency">0</div>
+          <div class="lbl">Emergency</div>
+        </div>
+      </div>
+      <div class="stat-card-admin glass-card offline-card">
+        <div class="stat-icon-box offline">⚫</div>
+        <div class="stat-info">
+          <div class="num" id="stat-offline">0</div>
+          <div class="lbl">Offline</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Workers Section -->
+    <div>
+      <div class="section-header">
+        <div>
+          <h2>👷 Workers Status</h2>
+          <p>Real-time status of all registered sanitation workers</p>
+        </div>
+        <div class="filter-tabs">
+          <button class="filter-tab active" data-filter="all"       onclick="setFilter('all')">All</button>
+          <button class="filter-tab"        data-filter="emergency" onclick="setFilter('emergency')">🔴 Emergency</button>
+          <button class="filter-tab"        data-filter="safe"      onclick="setFilter('safe')">🟢 Safe</button>
+          <button class="filter-tab"        data-filter="offline"   onclick="setFilter('offline')">⚫ Offline</button>
+        </div>
+      </div>
+      <div class="workers-grid" id="workers-grid">
+        <div class="empty-state" style="grid-column:1/-1">
+          <div class="empty-icon">⏳</div>
+          <p>Loading workers…</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts Table -->
+    <div class="alerts-section">
+      <div class="section-header">
+        <div>
+          <h2>🚨 Alert Log</h2>
+          <p>All SOS alerts — active and resolved</p>
+        </div>
+      </div>
+      <div class="alerts-table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Alert ID</th>
+              <th>Worker</th>
+              <th>Zone</th>
+              <th>Time</th>
+              <th>Location</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="alerts-tbody">
+            <tr>
+              <td colspan="7">
+                <div class="empty-state">
+                  <div class="empty-icon">🟢</div>
+                  <p>No alerts recorded. All clear!</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Demo Controls -->
+    <div class="glass-card" style="padding:20px 24px;">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;">🧪 Demo Controls</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Simulate scenarios for demo/testing without a second device.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-danger btn-sm" onclick="simulateEmergency()">🚨 Simulate Emergency (W001)</button>
+        <button class="btn btn-ghost btn-sm"  onclick="resetAllWorkers()">🔄 Reset All Workers</button>
+        <button class="btn btn-ghost btn-sm"  onclick="clearAllAlerts()">🗑️ Clear Alert Log</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Map Modal -->
+  <div id="map-modal" class="modal-overlay hidden" onclick="handleModalClick(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📍 Emergency Location — <span id="modal-worker-name">Worker</span></h3>
+        <button class="modal-close" onclick="closeMapModal()">✕</button>
+      </div>
+      <div id="admin-map"></div>
+      <div class="modal-footer">
+        <span class="coords" id="modal-coords">—</span>
+        <a id="modal-gmaps-btn" href="#" target="_blank" class="btn btn-primary btn-sm">🗺️ Open Google Maps</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="admin-notification" class="notification hidden"></div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/admin.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof L !== 'undefined') initAdminPanel();
+      else window.addEventListener('load', initAdminPanel);
+    });
+
+    function handleModalClick(e) {
+      if (e.target === document.getElementById('map-modal')) closeMapModal();
+    }
+
+    // ── Demo Controls ──────────────────────────────────────────────────────────
+    function simulateEmergency() {
+      const workers = JSON.parse(localStorage.getItem('sw_workers') || '[]');
+      const alerts  = JSON.parse(localStorage.getItem('sw_alerts')  || '[]');
+      const worker  = workers.find(w => w.id === 'W001');
+      if (!worker) return;
+
+      // Delhi random location (within city bounds)
+      const lat = 28.57 + Math.random() * 0.1;
+      const lng = 77.18 + Math.random() * 0.12;
+
+      worker.status      = 'emergency';
+      worker.last_active = new Date().toISOString();
+
+      alerts.unshift({
+        alert_id:    `ALT-${Date.now()}`,
+        worker_id:   'W001',
+        worker_name: worker.name,
+        zone:        worker.zone,
+        phone:       worker.phone,
+        latitude:    lat,
+        longitude:   lng,
+        timestamp:   new Date().toISOString(),
+        status:      'active',
+        resolved_by: null,
+        resolved_at: null
+      });
+
+      localStorage.setItem('sw_workers', JSON.stringify(workers));
+      localStorage.setItem('sw_alerts',  JSON.stringify(alerts));
+      showAdminNotification(`🚨 Emergency simulated for ${worker.name}!`, 'emergency');
+      loadAdminData();
+    }
+
+    function resetAllWorkers() {
+      const workers = JSON.parse(localStorage.getItem('sw_workers') || '[]');
+      workers.forEach(w => { w.status = 'safe'; w.last_active = new Date().toISOString(); });
+      localStorage.setItem('sw_workers', JSON.stringify(workers));
+      showAdminNotification('🔄 All workers reset to Safe status.', 'success');
+      loadAdminData();
+    }
+
+    function clearAllAlerts() {
+      if (!confirm('Clear all alert history? This cannot be undone.')) return;
+      localStorage.setItem('sw_alerts', JSON.stringify([]));
+      showAdminNotification('🗑️ Alert log cleared.', 'info');
+      loadAdminData();
+    }
+  </script>
+</body>
+</html>
